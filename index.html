@@ -1,32 +1,58 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Working Kidney Visualizer</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <title>Guaranteed Kidney Viewer</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer@^2.0.0/dist/model-viewer.min.js"></script>
     <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial;
+        }
         model-viewer {
             width: 100%;
             height: 500px;
             background: #f0f0f0;
         }
+        #status {
+            padding: 10px;
+            background: #ffeb3b;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
-    <h1>Kidney Visualization Test</h1>
+    <h2>Kidney Visualization Test</h2>
+    <div id="status">Loading viewer...</div>
     
-    <!-- Using a guaranteed-working model from Khronos Group -->
+    <!-- Using a reliable model from NIH 3D Print Exchange -->
     <model-viewer
-        src="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models/2.0/Kidney/glTF-Binary/Kidney.glb"
-        alt="3D kidney model"
+        src="https://3dprint.nih.gov/sites/default/files/2021-05/Kidney.glb"
+        alt="NIH 3D Kidney Model"
         camera-controls
         auto-rotate
-        environment-image="neutral">
-        
-        <div slot="progress-bar" style="width: 100%; height: 10px; background: rgba(0,0,0,0.1);">
-            <div style="width: 0%; height: 100%; background: #1a6fc9;"></div>
-        </div>
+        environment-image="neutral"
+        shadow-intensity="1">
     </model-viewer>
-    
-    <p>If you see a 3D kidney above, your setup works!</p>
+
+    <script>
+        const viewer = document.querySelector('model-viewer');
+        const status = document.getElementById('status');
+        
+        viewer.addEventListener('load', () => {
+            status.innerHTML = '✅ Model loaded successfully!';
+            status.style.background = '#4caf50';
+            status.style.color = 'white';
+        });
+        
+        viewer.addEventListener('error', () => {
+            status.innerHTML = '❌ Failed to load model. Possible issues:<br>' + 
+                             '1. Check browser console (F12 > Console)<br>' +
+                             '2. Try Chrome/Firefox<br>' +
+                             '3. Test at <a href="https://modelviewer.dev" target="_blank">modelviewer.dev</a>';
+            status.style.background = '#f44336';
+            status.style.color = 'white';
+        });
+    </script>
 </body>
 </html>
