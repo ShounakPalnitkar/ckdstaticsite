@@ -4,334 +4,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chronic Kidney Disease Detection & Visualization</title>
+    <title>Chronic Kidney Disease Detection Tool</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
-        /* Basic Reset and General Styles */
         body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-        }
-
-        .container {
-            max-width: 960px;
-            margin: auto;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
             padding: 20px;
-            background-color: white;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            background-color: #f5f9fc;
         }
 
-        /* Header Styles */
         header {
-            background-color: #0056b3;
+            background-color: #1a6fc9;
             color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
             text-align: center;
-            padding: 1em 0;
-            margin-bottom: 1em;
         }
 
-        header h1 {
-            margin: 0.2em 0;
+        h1,
+        h2,
+        h3 {
+            color: #1a6fc9;
         }
 
-        /* Section Styles */
-        section {
-            margin-bottom: 2em;
-            padding: 1em;
-            background-color: #f9f9f9;
-            border-radius: 5px;
+        h1 {
+            font-weight: bold;
+            font-size: 28px;
         }
 
-        section h2 {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 0.3em;
+        .form-section,
+        #result,
+        #visualizations,
+        #ar-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
 
-        /* Form Styles */
-        form label {
+        label {
             display: block;
-            margin-top: 1em;
+            margin: 15px 0 5px;
+            font-weight: 600;
         }
 
-        form input[type="text"],
-        form input[type="number"],
-        form select {
+        input,
+        select {
             width: 100%;
-            padding: 0.7em;
-            margin-top: 0.3em;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            box-sizing: border-box;
+            font-size: 16px;
         }
 
-        form button {
-            background-color: #0056b3;
-            color: white;
-            padding: 0.8em 1.5em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 1em;
-            font-size: 1em;
+        /* Improved checkbox styling */
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.5);
         }
 
-        form button:hover {
-            background-color: #003366;
-        }
-
-        /* Symptom Styles */
-        .symptoms-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.5em;
-        }
-
-        .symptoms-grid label {
+        .symptom-label {
             display: flex;
             align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
         }
 
-        .symptoms-grid input {
-            margin-right: 0.5em;
-        }
-
-        /* AR Viewer Styles */
-        #kidney-viewer {
-            width: 100%;
-            height: 400px;
-            background-color: #eee;
-            border-radius: 8px;
-            margin-bottom: 1em;
-        }
-
-        .ar-controls {
-            text-align: center;
-            margin-bottom: 1em;
-        }
-
-        .ar-controls button {
-            background-color: #4CAF50;
+        button {
+            background-color: #1a6fc9;
             color: white;
             border: none;
-            padding: 0.5em 1em;
-            margin: 0 0.5em;
-            border-radius: 5px;
+            padding: 12px 20px;
+            margin-top: 20px;
+            border-radius: 4px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
 
-        .ar-controls button:hover {
-            background-color: #45a049;
+        button:hover {
+            background-color: #145da0;
         }
 
-        /* Result Styles */
-        #result {
-            background-color: #e0f7fa;
-            border: 1px solid #80deea;
-            padding: 1em;
-            margin-top: 1em;
-            border-radius: 5px;
-        }
-
-        #result h2 {
-            color: #00838f;
-        }
-
-        /* Footer Styles */
-        footer {
-            text-align: center;
-            padding: 1em;
-            background-color: #ddd;
-            margin-top: 2em;
-        }
-
-        /* Utility Classes */
         .hidden {
             display: none;
         }
 
-        .error {
-            color: red;
-            margin-top: 0.5em;
+        .risk-high {
+            color: #e74c3c;
+            font-weight: bold;
         }
 
-        /* Responsive Design */
-        @media screen and (max-width: 600px) {
-            .container {
-                width: 100%;
-                padding: 10px;
+        .risk-medium {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .risk-low {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .additional-info {
+            background-color: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        /* Chatbot styles */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        #chatbot-toggle {
+            background-color: #1a6fc9;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        #chatbot-iframe {
+            width: 350px;
+            height: 500px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            margin-bottom: 10px;
+        }
+
+        .chatbot-visible #chatbot-iframe {
+            display: block;
+        }
+
+        /* Visualization styles */
+        .chart-container {
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .chart {
+            width: 100%;
+            height: 300px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .chart-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1a6fc9;
+            transition: height 1s ease;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .chart-label {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .risk-factors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .risk-factor {
+            background-color: #e8f4fc;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+        }
+
+        .risk-factor.high {
+            background-color: #fde8e8;
+            color: #e74c3c;
+        }
+
+        .risk-factor.medium {
+            background-color: #fef5e8;
+            color: #f39c12;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .download-btn {
+            background-color: #27ae60;
+        }
+
+        .download-btn:hover {
+            background-color: #219653;
+        }
+
+        .visualization-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* Lab value specific styles */
+        .lab-value {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #1a6fc9;
+        }
+
+        .lab-value h4 {
+            margin-top: 0;
+            color: #1a6fc9;
+        }
+
+        .lab-value-range {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .range-indicator {
+            height: 10px;
+            background: linear-gradient(to right, #27ae60, #f39c12, #e74c3c);
+            border-radius: 5px;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .range-marker {
+            position: absolute;
+            top: -5px;
+            width: 2px;
+            height: 20px;
+            background-color: #333;
+        }
+
+        .range-label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* AR Viewer Styles */
+        .ar-container {
+            width: 100%;
+            height: 500px;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ar-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .ar-stage-selector {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .ar-stage-btn {
+            padding: 8px 12px;
+            background-color: #e8f4fc;
+            border: 1px solid #1a6fc9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .ar-stage-btn.active {
+            background-color: #1a6fc9;
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .visualization-grid {
+                grid-template-columns: 1fr;
             }
 
-            .symptoms-grid {
-                grid-template-columns: 1fr;
+            .ar-stage-selector {
+                flex-direction: column;
+            }
+
+            .ar-stage-btn {
+                width: 100%;
             }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 
 <body>
     <header>
-        <h1>Kidney Health Explorer</h1>
-        <p>Understand your kidney health with our interactive tool.</p>
+        <h1>
+            <strong>Chronic Kidney Disease Detection Tool</strong>
+        </h1>
+        <p>Advanced assessment with AR visualization of kidney health</p>
     </header>
 
-    <div class="container">
-        <section id="intro">
-            <h2>Welcome to the Kidney Health Explorer</h2>
-            <p>This tool helps you assess your risk for Chronic Kidney Disease (CKD) and visualize kidney health
-                using 3D models. Please fill out the form below to get started.</p>
-        </section>
+    <section class="form-section">
+        <h2>Patient Information</h2>
+        <form id="ckd-form">
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required>
 
-        <section id="form-section">
-            <h2>Your Health Information</h2>
-            <form id="ckd-form">
-                <label for="age">Age:</label>
-                <input type="number" id="age" name="age" required>
+            <label for="blood_pressure">Blood Pressure (mm/Hg):</label>
+            <input type="number" id="blood_pressure" name="blood_pressure" required>
 
-                <label for="blood_pressure">Blood Pressure (mm/Hg):</label>
-                <input type="number" id="blood_pressure" name="blood_pressure" required>
+            <label for="specific_gravity">Specific Gravity:</label>
+            <select id="specific_gravity" name="specific_gravity">
+                <option value="1.005">1.005</option>
+                <option value="1.010">1.010</option>
+                <option value="1.015">1.015</option>
+                <option value="1.020">1.020</option>
+                <option value="1.025">1.025</option>
+            </select>
 
-                <label for="specific_gravity">Specific Gravity:</label>
-                <select id="specific_gravity" name="specific_gravity">
-                    <option value="1.005">1.005</option>
-                    <option value="1.010">1.010</option>
-                    <option value="1.015">1.015</option>
-                    <option value="1.020">1.020</option>
-                    <option value="1.025">1.025</option>
-                </select>
+            <label for="albumin">Albumin:</label>
+            <select id="albumin" name="albumin">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
 
-                <label for="albumin">Albumin:</label>
-                <select id="albumin" name="albumin">
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+            <label for="sugar">Sugar:</label>
+            <select id="sugar" name="sugar">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
 
-                <label for="sugar">Sugar:</label>
-                <select id="sugar" name="sugar">
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
+            <h3>Symptoms (Check all that apply)</h3>
 
-                <div class="symptoms-grid">
-                    <label>
-                        <input type="checkbox" name="symptoms" value="fatigue"> Fatigue
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="swelling"> Swelling (Edema)
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="nausea"> Nausea
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="vomiting"> Vomiting
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="shortness_of_breath"> Shortness of Breath
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="loss_of_appetite"> Loss of Appetite
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="blood_in_urine"> Blood in Urine
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="increased_urination"> Increased Urination
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="itching"> Persistent Itching
-                    </label>
-                    <label>
-                        <input type="checkbox" name="symptoms" value="muscle_cramps"> Muscle Cramps
-                    </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="fatigue"> Fatigue or weakness
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="swelling"> Swelling in feet/ankles
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="shortness"> Shortness of breath
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="appetite"> Poor appetite
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="sleep"> Trouble sleeping
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="urination"> Changes in urination (foamy, frequent, or reduced)
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="nausea"> Nausea or vomiting
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="itching"> Persistent itching
+            </label>
+            <label class="symptom-label">
+                <input type="checkbox" name="symptoms" value="muscle"> Muscle cramps
+            </label>
 
-                </div>
+            <button type="submit">Calculate My CKD Risk</button>
+        </form>
+    </section>
 
-                <button type="submit">Assess My Kidney Health</button>
-            </form>
-        </section>
+    <section id="result" class="hidden">
+        <h2>Assessment Result</h2>
+        <div id="risk-level"></div>
+        <div id="risk-factors"></div>
+        <div id="additional-info" class="additional-info"></div>
+        <div class="download-buttons">
+            <button id="download-pdf" class="download-btn">Download as PDF</button>
+            <button id="download-report" class="download-btn">Download Full Report</button>
+        </div>
+    </section>
 
-        <section id="result-section" class="hidden">
-            <h2>Assessment Result</h2>
-            <div id="result">
-                </div>
-        </section>
-
-        <section id="visualization-section" class="hidden">
-            <h2>Kidney Visualization</h2>
-            <p>Explore how CKD can affect the kidneys.</p>
-            <div id="kidney-viewer">
-                <model-viewer src="kidney.glb" alt="3D model of a kidney" auto-rotate camera-controls></model-viewer>
+    <section id="visualizations" class="hidden">
+        <h2>Risk Factor Visualizations</h2>
+        <div class="visualization-grid">
+            <div class="chart-container">
+                <div class="chart" id="age-chart"></div>
+                <div class="chart-label">Age Distribution</div>
             </div>
-            <div class="ar-controls">
-                <button id="view-in-ar">View in AR</button>
+            <div class="chart-container">
+                <div class="chart" id="bp-chart"></div>
+                <div class="chart-label">Blood Pressure Levels</div>
             </div>
+            </div>
+
+        <div class="lab-value">
+            <h4>Creatinine Level</h4>
+            <div class="lab-value-range">
+                <span class="range-label">Low (0.6 mg/dL)</span>
+                <span class="range-label">Normal (0.6 - 1.2 mg/dL)</span>
+                <span class="range-label">High (1.2+ mg/dL)</span>
+            </div>
+            <div class="range-indicator">
+                <div class="range-marker" id="creatinine-marker"></div>
+            </div>
+        </div>
         </section>
-    </div>
 
-    <footer>
-        <p>&copy; 2024 Kidney Health Explorer. This tool is for educational purposes only and should not replace
-            professional medical advice.</p>
-    </footer>
+    <section id="ar-section" class="hidden">
+        <h2>Kidney Health Visualization</h2>
+        <p>View a 3D model showing how CKD affects kidney structure at different stages</p>
 
-    <script>
-        document.getElementById('ckd-form').addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-
-            // Process symptoms as an array
-            const symptoms = formData.getAll('symptoms');
-            data['symptoms'] = symptoms;
-
-            //  Simple risk assessment logic (replace with your actual logic)
-            let risk = 0;
-            if (parseInt(data.age) > 60) risk++;
-            if (parseInt(data.blood_pressure) > 140) risk++;
-            if (data.albumin > 0) risk++;
-            if (data.sugar > 0) risk++;
-            if (symptoms.length > 2) risk++; // More symptoms, higher risk
-
-            let riskLevel = "Low";
-            if (risk >= 3) riskLevel = "High";
-            else if (risk >= 1) riskLevel = "Moderate";
-
-            let resultText = `
-                <p>Your CKD risk is: <strong>${riskLevel}</strong></p>
-                <p>Based on your input, you show ${risk} risk factors.</p>
-                <p>It's important to consult with a healthcare professional for a complete evaluation.</p>
-            `;
-
-            document.getElementById('result').innerHTML = resultText;
-            document.getElementById('result-section').classList.remove('hidden');
-            document.getElementById('visualization-section').classList.remove('hidden');
-            window.scrollTo({
-                top: document.getElementById('result-section').offsetTop,
-                behavior: 'smooth'
-            });
-        });
-
-        document.getElementById('view-in-ar').addEventListener('click', function () {
-            const modelViewer = document.querySelector('model-viewer');
-            modelViewer.activateAR();
-        });
-    </script>
-    </body>
-
-</html>
+        <div class="ar-container">
+            <model-viewer id="kidney-model" src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"
+                alt="A 3D model of human kidneys showing CKD progression" ar ar-modes="scene-viewer webxr quick-look"
+                camera-controls environment-image="neutral" shadow-intensity="1" exposure="0.8">
+                <button slot="ar-button"
+                    style="background-color: white; border-radius: 4px; padding: 8px 1
