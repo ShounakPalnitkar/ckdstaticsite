@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kidney Health Checker</title>
+    <title>Kidney Health Visualization</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         :root {
@@ -92,13 +92,27 @@
             background-color: #145da0;
         }
         
-        .ar-viewer {
+        .model-container {
             width: 100%;
             height: 500px;
             margin: 20px 0;
             border-radius: 8px;
             overflow: hidden;
-            background-color: #000;
+            position: relative;
+            background-color: #f0f0f0;
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.1);
+            z-index: 10;
         }
         
         .stage-selector {
@@ -128,47 +142,8 @@
             border-radius: 8px;
         }
         
-        .risk-indicator {
-            height: 20px;
-            background: linear-gradient(to right, var(--success), var(--warning), var(--danger));
-            border-radius: 10px;
-            margin: 20px 0;
-            position: relative;
-        }
-        
-        .risk-marker {
-            position: absolute;
-            top: -5px;
-            width: 3px;
-            height: 30px;
-            background-color: #333;
-        }
-        
         .hidden {
             display: none;
-        }
-        
-        .result-card {
-            text-align: center;
-            padding: 30px;
-        }
-        
-        .risk-high {
-            color: var(--danger);
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .risk-medium {
-            color: var(--warning);
-            font-size: 24px;
-            font-weight: bold;
-        }
-        
-        .risk-low {
-            color: var(--success);
-            font-size: 24px;
-            font-weight: bold;
         }
         
         @media (max-width: 768px) {
@@ -184,7 +159,7 @@
                 width: 100%;
             }
             
-            .ar-viewer {
+            .model-container {
                 height: 300px;
             }
         }
@@ -192,13 +167,13 @@
 </head>
 <body>
     <header>
-        <h1>Kidney Health Checker</h1>
-        <p>Understand your kidney health through symptoms and 3D visualization</p>
+        <h1>Kidney Health Visualizer</h1>
+        <p>See how kidney disease progresses based on symptoms</p>
     </header>
     
     <section class="card" id="symptom-checker">
-        <h2>Check Your Symptoms</h2>
-        <p>Select all symptoms you're experiencing to assess your kidney health risk:</p>
+        <h2>Select Your Symptoms</h2>
+        <p>Choose all symptoms you're experiencing to visualize potential kidney health impact:</p>
         
         <div class="symptom-grid">
             <label class="symptom-card">
@@ -228,107 +203,57 @@
             <label class="symptom-card">
                 <input type="checkbox" name="muscle"> Muscle cramps
             </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="blood"> Blood in urine
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="pressure"> High blood pressure
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="diabetes"> Diabetes
-            </label>
         </div>
         
-        <button id="check-symptoms">Check My Kidney Health</button>
+        <button id="check-symptoms">Visualize Kidney Health</button>
     </section>
     
     <section class="card hidden" id="result-section">
-        <div class="result-card">
-            <h2>Your Kidney Health Assessment</h2>
-            <p>Based on your symptoms:</p>
-            <div id="risk-level" class="risk-low">Low Risk</div>
-            <div class="risk-indicator">
-                <div id="risk-marker" class="risk-marker" style="left: 10%;"></div>
+        <h2>Kidney Health Visualization</h2>
+        
+        <div class="model-container">
+            <div class="loading-overlay">
+                <p>Loading 3D model...</p>
             </div>
-            <p id="risk-description">Your symptoms suggest minimal risk of kidney disease.</p>
-        </div>
-        
-        <h3>3D Kidney Health Visualization</h3>
-        <p>See how chronic kidney disease progresses through different stages:</p>
-        
-        <div class="ar-viewer">
             <model-viewer 
                 id="kidney-model"
-                src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"
-                alt="3D model of human kidneys"
+                src="https://cdn.glitch.global/6d1a5c7e-4a53-4a1d-8e1f-3b8d9d9d9d9d/kidney.glb"
+                alt="3D model of human kidneys showing CKD progression"
                 camera-controls
                 auto-rotate
                 environment-image="neutral"
-                exposure="0.8">
+                exposure="1.0"
+                shadow-intensity="1"
+                camera-orbit="0deg 75deg 105%"
+                field-of-view="30deg">
             </model-viewer>
         </div>
         
         <div class="stage-selector">
-            <button class="stage-btn active" data-stage="normal">Healthy Kidney</button>
-            <button class="stage-btn" data-stage="early">Early Stage</button>
-            <button class="stage-btn" data-stage="moderate">Moderate Damage</button>
-            <button class="stage-btn" data-stage="severe">Severe Damage</button>
-            <button class="stage-btn" data-stage="failure">Kidney Failure</button>
+            <button class="stage-btn active" data-stage="normal">Healthy</button>
+            <button class="stage-btn" data-stage="stage1">Stage 1</button>
+            <button class="stage-btn" data-stage="stage2">Stage 2</button>
+            <button class="stage-btn" data-stage="stage3">Stage 3</button>
+            <button class="stage-btn" data-stage="stage4">Stage 4</button>
+            <button class="stage-btn" data-stage="stage5">Stage 5</button>
         </div>
         
         <div class="stage-info">
-            <h4 id="stage-title">Healthy Kidney</h4>
-            <p id="stage-description">A normal, healthy kidney filters waste and excess fluids from your blood. The kidney appears smooth with uniform texture and normal size.</p>
-            <ul id="stage-symptoms">
-                <li>No symptoms typically present</li>
-                <li>Normal urine output</li>
-                <li>Normal blood pressure</li>
-            </ul>
+            <h3 id="stage-title">Healthy Kidney</h3>
+            <p id="stage-description">Normal kidney function with no visible damage. The kidneys filter waste properly and maintain fluid balance.</p>
+            <div id="stage-symptoms">
+                <p><strong>Associated Symptoms:</strong> None typically</p>
+                <p><strong>GFR:</strong> 90+ mL/min</p>
+            </div>
         </div>
         
-        <button id="back-to-symptoms">Check Again</button>
+        <button id="back-to-symptoms">Check Different Symptoms</button>
     </section>
-    
-    <footer>
-        <p><strong>Disclaimer:</strong> This tool is for educational purposes only and not a substitute for professional medical advice.</p>
-    </footer>
     
     <script>
         document.getElementById('check-symptoms').addEventListener('click', function() {
-            // Count checked symptoms
-            const checkboxes = document.querySelectorAll('.symptom-grid input[type="checkbox"]:checked');
-            const symptomCount = checkboxes.length;
-            
-            // Determine risk level
-            let riskLevel, riskClass, riskPercentage, description;
-            
-            if (symptomCount === 0) {
-                riskLevel = "No Symptoms Reported";
-                riskClass = "risk-low";
-                riskPercentage = "5%";
-                description = "You reported no symptoms associated with kidney disease. Maintain healthy habits and regular checkups.";
-            } else if (symptomCount <= 2) {
-                riskLevel = "Low Risk";
-                riskClass = "risk-low";
-                riskPercentage = "15%";
-                description = "You have few symptoms that may or may not be related to kidney issues. Consider monitoring your symptoms.";
-            } else if (symptomCount <= 5) {
-                riskLevel = "Moderate Risk";
-                riskClass = "risk-medium";
-                riskPercentage = "45%";
-                description = "Your symptoms suggest possible kidney concerns. We recommend consulting a healthcare provider.";
-            } else {
-                riskLevel = "High Risk";
-                riskClass = "risk-high";
-                riskPercentage = "75%";
-                description = "You have multiple symptoms associated with kidney disease. Please see a doctor for proper evaluation.";
-            }
-            
-            // Update result display
-            document.getElementById('risk-level').textContent = riskLevel;
-            document.getElementById('risk-level').className = riskClass;
-            document.getElementById('risk-marker').style.left = riskPercentage;
-            document.getElementById('risk-description').textContent = description;
+            // Show loading state
+            document.querySelector('.loading-overlay').style.display = 'flex';
             
             // Show result section
             document.getElementById('symptom-checker').classList.add('hidden');
@@ -344,67 +269,60 @@
         });
         
         function setupKidneyViewer() {
+            const modelViewer = document.querySelector('model-viewer');
             const stageButtons = document.querySelectorAll('.stage-btn');
             const stageTitle = document.getElementById('stage-title');
             const stageDesc = document.getElementById('stage-description');
             const stageSymptoms = document.getElementById('stage-symptoms');
             
+            // Hide loading overlay when model loads
+            modelViewer.addEventListener('load', () => {
+                document.querySelector('.loading-overlay').style.display = 'none';
+            });
+            
             // Stage information data
             const stages = {
                 normal: {
                     title: "Healthy Kidney",
-                    description: "A normal, healthy kidney filters waste and excess fluids from your blood efficiently.",
-                    symptoms: [
-                        "No symptoms typically present",
-                        "Normal urine output",
-                        "Normal blood pressure"
-                    ],
-                    exposure: 0.8
+                    description: "Normal kidney function with no visible damage. The kidneys filter waste properly and maintain fluid balance.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> None typically</p><p><strong>GFR:</strong> 90+ mL/min</p>",
+                    exposure: 1.0,
+                    orbit: "0deg 75deg 105%"
                 },
-                early: {
-                    title: "Early Stage Kidney Disease",
-                    description: "Mild damage with some filtering impairment, but usually no noticeable symptoms.",
-                    symptoms: [
-                        "Possible mild fatigue",
-                        "Slightly elevated blood pressure",
-                        "Possible protein in urine"
-                    ],
-                    exposure: 0.7
+                stage1: {
+                    title: "Stage 1 CKD",
+                    description: "Kidney damage with normal or high GFR. Minimal visible changes but some functional impairment.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> Usually none, possible high blood pressure</p><p><strong>GFR:</strong> 90+ mL/min</p>",
+                    exposure: 0.9,
+                    orbit: "0deg 75deg 105%"
                 },
-                moderate: {
-                    title: "Moderate Kidney Damage",
-                    description: "Noticeable reduction in kidney function with some symptoms appearing.",
-                    symptoms: [
-                        "Fatigue and weakness",
-                        "Swelling in extremities",
-                        "Changes in urination patterns",
-                        "Mild anemia"
-                    ],
-                    exposure: 0.5
+                stage2: {
+                    title: "Stage 2 CKD",
+                    description: "Mild reduction in kidney function. Some structural changes visible with possible early scarring.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> Fatigue, mild swelling, high blood pressure</p><p><strong>GFR:</strong> 60-89 mL/min</p>",
+                    exposure: 0.7,
+                    orbit: "0deg 75deg 105%"
                 },
-                severe: {
-                    title: "Severe Kidney Damage",
-                    description: "Significant loss of kidney function with multiple symptoms present.",
-                    symptoms: [
-                        "Persistent swelling",
-                        "Shortness of breath",
-                        "Nausea or vomiting",
-                        "Severe fatigue",
-                        "Itching"
-                    ],
-                    exposure: 0.3
+                stage3: {
+                    title: "Stage 3 CKD",
+                    description: "Moderate kidney damage with noticeable scarring and reduced size. Significant functional impairment.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> Fatigue, swelling, changes in urination, anemia</p><p><strong>GFR:</strong> 30-59 mL/min</p>",
+                    exposure: 0.5,
+                    orbit: "0deg 75deg 110%"
                 },
-                failure: {
-                    title: "Kidney Failure (ESRD)",
-                    description: "Kidneys have lost nearly all ability to function, requiring dialysis or transplant.",
-                    symptoms: [
-                        "Little to no urine output",
-                        "Severe swelling",
-                        "Difficulty breathing",
-                        "Confusion or seizures",
-                        "Persistent nausea"
-                    ],
-                    exposure: 0.2
+                stage4: {
+                    title: "Stage 4 CKD",
+                    description: "Severe kidney damage with extensive scarring. Kidneys are significantly smaller and irregular.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> Severe fatigue, swelling, nausea, itching, muscle cramps</p><p><strong>GFR:</strong> 15-29 mL/min</p>",
+                    exposure: 0.3,
+                    orbit: "0deg 75deg 115%"
+                },
+                stage5: {
+                    title: "Stage 5 CKD (Failure)",
+                    description: "End-stage renal disease. Kidneys are very small with extensive scarring and cyst formation.",
+                    symptoms: "<p><strong>Associated Symptoms:</strong> Little/no urine, severe swelling, breathing difficulty, confusion</p><p><strong>GFR:</strong> <15 mL/min</p>",
+                    exposure: 0.2,
+                    orbit: "0deg 75deg 120%"
                 }
             };
             
@@ -421,18 +339,14 @@
                     // Update stage information
                     stageTitle.textContent = stageData.title;
                     stageDesc.textContent = stageData.description;
+                    stageSymptoms.innerHTML = stageData.symptoms;
                     
-                    // Update symptoms list
-                    stageSymptoms.innerHTML = '';
-                    stageData.symptoms.forEach(symptom => {
-                        const li = document.createElement('li');
-                        li.textContent = symptom;
-                        stageSymptoms.appendChild(li);
-                    });
-                    
-                    // Change model appearance (in a real app, this would load different models)
-                    const modelViewer = document.querySelector('model-viewer');
+                    // Change model appearance
                     modelViewer.exposure = stageData.exposure;
+                    modelViewer.cameraOrbit = stageData.orbit;
+                    
+                    // In a full implementation, we would load different models for each stage:
+                    // modelViewer.src = `models/kidney-${stage}.glb`;
                 });
             });
         }
