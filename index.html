@@ -1,58 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Guaranteed Kidney Viewer</title>
-    <script type="module" src="https://unpkg.com/@google/model-viewer@^2.0.0/dist/model-viewer.min.js"></script>
+    <title>Working Kidney Visualization</title>
+    <!-- Use the official model-viewer script -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer@^2.4.1/dist/model-viewer.min.js"></script>
     <style>
         body {
-            margin: 0;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 20px;
-            font-family: Arial;
         }
-        model-viewer {
+        #viewer-container {
             width: 100%;
             height: 500px;
-            background: #f0f0f0;
+            margin: 20px 0;
+            border: 2px solid #1a6fc9;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
         }
-        #status {
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        #error-message {
+            color: red;
+            margin-top: 20px;
             padding: 10px;
-            background: #ffeb3b;
-            margin: 10px 0;
+            border: 1px solid red;
+            border-radius: 5px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h2>Kidney Visualization Test</h2>
-    <div id="status">Loading viewer...</div>
+    <h1>Kidney Visualization</h1>
     
-    <!-- Using a reliable model from NIH 3D Print Exchange -->
-    <model-viewer
-        src="https://3dprint.nih.gov/sites/default/files/2021-05/Kidney.glb"
-        alt="NIH 3D Kidney Model"
-        camera-controls
-        auto-rotate
-        environment-image="neutral"
-        shadow-intensity="1">
-    </model-viewer>
-
+    <div id="viewer-container">
+        <div id="loading">
+            <p>Loading 3D viewer...</p>
+            <progress value="0" max="100"></progress>
+        </div>
+        
+        <!-- Using a reliable model from NIH 3D Print Exchange -->
+        <model-viewer
+            id="kidney-model"
+            src="https://3dprint.nih.gov/sites/default/files/2021-05/Kidney.glb"
+            alt="3D kidney model"
+            camera-controls
+            auto-rotate
+            ar
+            environment-image="neutral"
+            shadow-intensity="1">
+        </model-viewer>
+    </div>
+    
+    <div id="error-message"></div>
+    
     <script>
-        const viewer = document.querySelector('model-viewer');
-        const status = document.getElementById('status');
-        
-        viewer.addEventListener('load', () => {
-            status.innerHTML = '✅ Model loaded successfully!';
-            status.style.background = '#4caf50';
-            status.style.color = 'white';
+        const modelViewer = document.getElementById('kidney-model');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error-message');
+        const progressBar = loadingDiv.querySelector('progress');
+
+        // Show loading progress
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = Math.round(event.detail.totalProgress * 100);
+            progressBar.value = progress;
         });
-        
-        viewer.addEventListener('error', () => {
-            status.innerHTML = '❌ Failed to load model. Possible issues:<br>' + 
-                             '1. Check browser console (F12 > Console)<br>' +
-                             '2. Try Chrome/Firefox<br>' +
-                             '3. Test at <a href="https://modelviewer.dev" target="_blank">modelviewer.dev</a>';
-            status.style.background = '#f44336';
-            status.style.color = 'white';
+
+        // When model loads successfully
+        modelViewer.addEventListener('load', () => {
+            loadingDiv.style.display = 'none';
         });
+
+        // If model fails to load
+        modelViewer.addEventListener('error', (error) => {
+            loadingDiv.style.display = 'none';
+            errorDiv.style.display = 'block';
+            
+            let errorMsg = '<strong>Failed to load model.</strong><br><br>';
+            errorMsg += 'Please try:<ol>';
+            errorMsg += '<li>Refresh the page (Ctrl+F5)</li>';
+            errorMsg += '<li>Try in Chrome or Firefox</li>';
+            errorMsg += '<li>Check your internet connection</li>';
+            errorMsg += '<li>Test at <a href="https://modelviewer.dev" target="_blank">modelviewer.dev</a></li>';
+            errorMsg += '</ol>';
+            
+            errorMsg += '<p><small>Technical details: ' + (error.message || 'Unknown error') + '</small></p>';
+            
+            errorDiv.innerHTML = errorMsg;
+            
+            // Fallback option
+            const fallbackBtn = document.createElement('button');
+            fallbackBtn.textContent = 'Try Fallback Model';
+            fallbackBtn.style.marginTop = '10px';
+            fallbackBtn.onclick = loadFallbackModel;
+            errorDiv.appendChild(fallbackBtn);
+        });
+
+        // Fallback model loader
+        function loadFallbackModel() {
+            errorDiv.innerHTML = 'Loading fallback model...';
+            modelViewer.src = 'https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Kidney/glTF-Binary/Kidney.glb';
+            loadingDiv.style.display = 'flex';
+        }
     </script>
 </body>
 </html>
