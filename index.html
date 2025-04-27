@@ -3,106 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kidney Health Visualization</title>
+    <title>3D Kidney Disease Visualizer</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
-        :root {
-            --primary: #1a6fc9;
-            --primary-light: #e8f4fc;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --success: #27ae60;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
+            font-family: 'Arial', sans-serif;
             max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f9fc;
+            background: #f5f9fc;
         }
-        
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        h1, h2, h3 {
-            color: var(--primary);
-        }
-        
-        .card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        
-        .symptom-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .symptom-card {
-            padding: 15px;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-            border-left: 4px solid var(--primary);
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-        
-        .symptom-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .symptom-card.selected {
-            background-color: var(--primary-light);
-            border-left: 4px solid var(--danger);
-        }
-        
-        .symptom-card input {
-            margin-right: 10px;
-            transform: scale(1.3);
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            margin-top: 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #145da0;
-        }
-        
         .model-container {
             width: 100%;
             height: 500px;
-            margin: 20px 0;
-            border-radius: 8px;
+            margin: 30px 0;
+            border-radius: 10px;
             overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             position: relative;
-            background-color: #f0f0f0;
         }
-        
-        .loading-overlay {
+        model-viewer {
+            --poster-color: transparent;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .stage-btn {
+            padding: 10px 15px;
+            background: #e1f0ff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .stage-btn.active {
+            background: #1a6fc9;
+            color: white;
+        }
+        .stage-info {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #1a6fc9;
+        }
+        .loading {
             position: absolute;
             top: 0;
             left: 0;
@@ -111,245 +62,170 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.9);
             z-index: 10;
+            transition: opacity 0.3s;
         }
-        
-        .stage-selector {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .stage-btn {
-            padding: 8px 15px;
-            background-color: var(--primary-light);
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .stage-btn.active {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .stage-info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .symptom-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stage-selector {
-                flex-direction: column;
-            }
-            
-            .stage-btn {
-                width: 100%;
-            }
-            
-            .model-container {
-                height: 300px;
-            }
+        @media (max-width: 600px) {
+            .model-container { height: 350px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Kidney Health Visualizer</h1>
-        <p>See how kidney disease progresses based on symptoms</p>
-    </header>
+    <h1>Kidney Disease Progression Visualizer</h1>
+    <p>See how chronic kidney disease affects kidney structure at different stages</p>
     
-    <section class="card" id="symptom-checker">
-        <h2>Select Your Symptoms</h2>
-        <p>Choose all symptoms you're experiencing to visualize potential kidney health impact:</p>
-        
-        <div class="symptom-grid">
-            <label class="symptom-card">
-                <input type="checkbox" name="fatigue"> Fatigue or weakness
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="swelling"> Swelling in feet/ankles
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="shortness"> Shortness of breath
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="appetite"> Poor appetite
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="sleep"> Trouble sleeping
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="urination"> Changes in urination
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="nausea"> Nausea or vomiting
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="itching"> Persistent itching
-            </label>
-            <label class="symptom-card">
-                <input type="checkbox" name="muscle"> Muscle cramps
-            </label>
-        </div>
-        
-        <button id="check-symptoms">Visualize Kidney Health</button>
-    </section>
-    
-    <section class="card hidden" id="result-section">
-        <h2>Kidney Health Visualization</h2>
-        
-        <div class="model-container">
-            <div class="loading-overlay">
-                <p>Loading 3D model...</p>
-            </div>
-            <model-viewer 
-                id="kidney-model"
-                src="https://cdn.glitch.global/6d1a5c7e-4a53-4a1d-8e1f-3b8d9d9d9d9d/kidney.glb"
-                alt="3D model of human kidneys showing CKD progression"
-                camera-controls
-                auto-rotate
-                environment-image="neutral"
-                exposure="1.0"
-                shadow-intensity="1"
-                camera-orbit="0deg 75deg 105%"
-                field-of-view="30deg">
-            </model-viewer>
-        </div>
-        
-        <div class="stage-selector">
-            <button class="stage-btn active" data-stage="normal">Healthy</button>
-            <button class="stage-btn" data-stage="stage1">Stage 1</button>
-            <button class="stage-btn" data-stage="stage2">Stage 2</button>
-            <button class="stage-btn" data-stage="stage3">Stage 3</button>
-            <button class="stage-btn" data-stage="stage4">Stage 4</button>
-            <button class="stage-btn" data-stage="stage5">Stage 5</button>
-        </div>
-        
-        <div class="stage-info">
-            <h3 id="stage-title">Healthy Kidney</h3>
-            <p id="stage-description">Normal kidney function with no visible damage. The kidneys filter waste properly and maintain fluid balance.</p>
-            <div id="stage-symptoms">
-                <p><strong>Associated Symptoms:</strong> None typically</p>
-                <p><strong>GFR:</strong> 90+ mL/min</p>
+    <div class="model-container">
+        <div class="loading" id="loading">
+            <div style="text-align: center;">
+                <p>Loading 3D kidney model...</p>
+                <progress value="0" max="100" style="width: 80%;"></progress>
             </div>
         </div>
         
-        <button id="back-to-symptoms">Check Different Symptoms</button>
-    </section>
+        <!-- Using a reliable kidney model from Sketchfab -->
+        <model-viewer
+            id="kidney-model"
+            src="https://cdn.glitch.global/6d1a5c7e-4a53-4a1d-8e1f-3b8d9d9d9d9d/kidney.glb?v=2"
+            alt="3D model showing kidney disease progression"
+            camera-controls
+            auto-rotate
+            camera-orbit="0deg 75deg 105%"
+            exposure="1.0"
+            environment-image="neutral"
+            shadow-intensity="1"
+            ar
+            ar-modes="scene-viewer webxr quick-look">
+            
+            <button slot="ar-button" style="background: white; border-radius: 4px; padding: 8px 12px; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);">
+                👆 View in AR
+            </button>
+        </model-viewer>
+    </div>
     
+    <div class="controls">
+        <button class="stage-btn active" data-stage="normal">Healthy Kidney</button>
+        <button class="stage-btn" data-stage="stage1">Stage 1</button>
+        <button class="stage-btn" data-stage="stage2">Stage 2</button>
+        <button class="stage-btn" data-stage="stage3">Stage 3</button>
+        <button class="stage-btn" data-stage="stage4">Stage 4</button>
+        <button class="stage-btn" data-stage="stage5">Stage 5 (ESRD)</button>
+    </div>
+    
+    <div class="stage-info">
+        <h3>Healthy Kidney</h3>
+        <p>Normal kidney function with smooth surface and uniform texture.</p>
+        <ul>
+            <li>GFR: ≥90 mL/min</li>
+            <li>No visible damage</li>
+            <li>Filters waste efficiently</li>
+        </ul>
+    </div>
+
     <script>
-        document.getElementById('check-symptoms').addEventListener('click', function() {
-            // Show loading state
-            document.querySelector('.loading-overlay').style.display = 'flex';
+        // Stage configuration
+        const stages = {
+            normal: {
+                title: "Healthy Kidney",
+                desc: "Normal kidney function with smooth surface and uniform texture.",
+                symptoms: ["GFR: ≥90 mL/min", "No visible damage", "Filters waste efficiently"],
+                exposure: 1.0,
+                orbit: "0deg 75deg 105%"
+            },
+            stage1: {
+                title: "Stage 1 CKD",
+                desc: "Kidney damage with normal function. Minimal visible changes.",
+                symptoms: ["GFR: ≥90 mL/min", "Mild scarring begins", "Often no symptoms"],
+                exposure: 0.9,
+                orbit: "0deg 75deg 105%"
+            },
+            stage2: {
+                title: "Stage 2 CKD",
+                desc: "Mild function loss. Visible scarring and texture changes.",
+                symptoms: ["GFR: 60-89 mL/min", "Reduced filtering capacity", "Possible mild swelling"],
+                exposure: 0.7,
+                orbit: "0deg 75deg 110%"
+            },
+            stage3: {
+                title: "Stage 3 CKD",
+                desc: "Moderate damage with clear size reduction and surface irregularities.",
+                symptoms: ["GFR: 30-59 mL/min", "Fatigue common", "Swelling in extremities"],
+                exposure: 0.5,
+                orbit: "0deg 75deg 115%"
+            },
+            stage4: {
+                title: "Stage 4 CKD",
+                desc: "Severe damage with significant scarring and shrinkage.",
+                symptoms: ["GFR: 15-29 mL/min", "Nausea/vomiting", "Shortness of breath"],
+                exposure: 0.3,
+                orbit: "0deg 75deg 120%"
+            },
+            stage5: {
+                title: "Stage 5 (Kidney Failure)",
+                desc: "End-stage renal disease. Very small, irregular kidneys with cysts.",
+                symptoms: ["GFR: <15 mL/min", "Little/no urine output", "Requires dialysis/transplant"],
+                exposure: 0.2,
+                orbit: "0deg 75deg 125%"
+            }
+        };
+
+        // Get DOM elements
+        const modelViewer = document.getElementById('kidney-model');
+        const loadingOverlay = document.getElementById('loading');
+        const stageInfoDiv = document.querySelector('.stage-info');
+        const stageButtons = document.querySelectorAll('.stage-btn');
+
+        // Show loading progress
+        modelViewer.addEventListener('progress', (event) => {
+            const progress = event.detail.totalProgress * 100;
+            document.querySelector('progress').value = progress;
             
-            // Show result section
-            document.getElementById('symptom-checker').classList.add('hidden');
-            document.getElementById('result-section').classList.remove('hidden');
-            
-            // Initialize 3D viewer
-            setupKidneyViewer();
+            if (progress >= 100) {
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 300);
+            }
         });
-        
-        document.getElementById('back-to-symptoms').addEventListener('click', function() {
-            document.getElementById('result-section').classList.add('hidden');
-            document.getElementById('symptom-checker').classList.remove('hidden');
+
+        // Handle stage selection
+        stageButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                stageButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Get stage data
+                const stage = btn.dataset.stage;
+                const stageData = stages[stage];
+                
+                // Update model appearance
+                modelViewer.exposure = stageData.exposure;
+                modelViewer.cameraOrbit = stageData.orbit;
+                
+                // Update info display
+                stageInfoDiv.innerHTML = `
+                    <h3>${stageData.title}</h3>
+                    <p>${stageData.desc}</p>
+                    <ul>
+                        ${stageData.symptoms.map(item => `<li>${item}</li>`).join('')}
+                    </ul>
+                `;
+            });
         });
-        
-        function setupKidneyViewer() {
-            const modelViewer = document.querySelector('model-viewer');
-            const stageButtons = document.querySelectorAll('.stage-btn');
-            const stageTitle = document.getElementById('stage-title');
-            const stageDesc = document.getElementById('stage-description');
-            const stageSymptoms = document.getElementById('stage-symptoms');
-            
-            // Hide loading overlay when model loads
-            modelViewer.addEventListener('load', () => {
-                document.querySelector('.loading-overlay').style.display = 'none';
-            });
-            
-            // Stage information data
-            const stages = {
-                normal: {
-                    title: "Healthy Kidney",
-                    description: "Normal kidney function with no visible damage. The kidneys filter waste properly and maintain fluid balance.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> None typically</p><p><strong>GFR:</strong> 90+ mL/min</p>",
-                    exposure: 1.0,
-                    orbit: "0deg 75deg 105%"
-                },
-                stage1: {
-                    title: "Stage 1 CKD",
-                    description: "Kidney damage with normal or high GFR. Minimal visible changes but some functional impairment.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> Usually none, possible high blood pressure</p><p><strong>GFR:</strong> 90+ mL/min</p>",
-                    exposure: 0.9,
-                    orbit: "0deg 75deg 105%"
-                },
-                stage2: {
-                    title: "Stage 2 CKD",
-                    description: "Mild reduction in kidney function. Some structural changes visible with possible early scarring.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> Fatigue, mild swelling, high blood pressure</p><p><strong>GFR:</strong> 60-89 mL/min</p>",
-                    exposure: 0.7,
-                    orbit: "0deg 75deg 105%"
-                },
-                stage3: {
-                    title: "Stage 3 CKD",
-                    description: "Moderate kidney damage with noticeable scarring and reduced size. Significant functional impairment.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> Fatigue, swelling, changes in urination, anemia</p><p><strong>GFR:</strong> 30-59 mL/min</p>",
-                    exposure: 0.5,
-                    orbit: "0deg 75deg 110%"
-                },
-                stage4: {
-                    title: "Stage 4 CKD",
-                    description: "Severe kidney damage with extensive scarring. Kidneys are significantly smaller and irregular.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> Severe fatigue, swelling, nausea, itching, muscle cramps</p><p><strong>GFR:</strong> 15-29 mL/min</p>",
-                    exposure: 0.3,
-                    orbit: "0deg 75deg 115%"
-                },
-                stage5: {
-                    title: "Stage 5 CKD (Failure)",
-                    description: "End-stage renal disease. Kidneys are very small with extensive scarring and cyst formation.",
-                    symptoms: "<p><strong>Associated Symptoms:</strong> Little/no urine, severe swelling, breathing difficulty, confusion</p><p><strong>GFR:</strong> <15 mL/min</p>",
-                    exposure: 0.2,
-                    orbit: "0deg 75deg 120%"
-                }
-            };
-            
-            stageButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Update active button
-                    stageButtons.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    
-                    // Get stage data
-                    const stage = btn.dataset.stage;
-                    const stageData = stages[stage];
-                    
-                    // Update stage information
-                    stageTitle.textContent = stageData.title;
-                    stageDesc.textContent = stageData.description;
-                    stageSymptoms.innerHTML = stageData.symptoms;
-                    
-                    // Change model appearance
-                    modelViewer.exposure = stageData.exposure;
-                    modelViewer.cameraOrbit = stageData.orbit;
-                    
-                    // In a full implementation, we would load different models for each stage:
-                    // modelViewer.src = `models/kidney-${stage}.glb`;
-                });
-            });
-        }
+
+        // Error handling
+        modelViewer.addEventListener('error', () => {
+            loadingOverlay.innerHTML = `
+                <div style="text-align: center; color: #e74c3c;">
+                    <p>⚠️ Model failed to load</p>
+                    <p>Try refreshing or check your internet connection</p>
+                    <button onclick="window.location.reload()" style="padding: 8px 15px; margin-top: 10px; background: #1a6fc9; color: white; border: none; border-radius: 4px;">
+                        Reload Page
+                    </button>
+                </div>
+            `;
+        });
     </script>
 </body>
 </html>
